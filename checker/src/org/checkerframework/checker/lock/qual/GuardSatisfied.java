@@ -24,22 +24,6 @@ import org.checkerframework.framework.qual.SubtypeOf;
  * the constructor can be called by arbitrary code).
  * <p>
  *
- * For all {@code @GuardSatisfied(index)} annotations
- * with the same index, the corresponding primary annotations in the {@code @GuardedBy} hierarchy
- * of the types at the call site are subtypes of one another (in other words, the
- * least upper bound of the set is an exact match with one of the elements).
- * Note that a return type can only
- * be annotated with {@code @GuardSatisfied(index)}, not {@code @GuardSatisfied}.
- * <p>
- *
- * Note that if formal parameter types are
- * annotated with {@code @GuardSatisfied} without an index, then those formal parameter
- * types are unrelated with regard to types in the {@code @GuardedBy} hierarchy.
- * <p>
- *
- * {@code @GuardSatisfied} may not be used on formal parameters, receivers, or return types of a
- * method annotated with {@literal @}{@link MayReleaseLocks}
- *
  * @see GuardedBy
  * @see Holding
  * @checker_framework.manual #lock-checker Lock Checker

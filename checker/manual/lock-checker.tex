@@ -85,6 +85,13 @@ This section describes the lock annotations you can write on types and methods.
   the dereference is
   permitted only if the thread holds all the locks.
 
+  Section~\ref{java-expressions-as-arguments} explains which
+  expressions the Lock Checker is able to analyze as lock expressions.
+  These include \<itself>, i.e. the value of the annotated reference
+  (non-primitive) variable.  For example, \<@GuardedBy("itself") Object o>
+  indicates that the value referenced by \<o> is guarded by the intrinsic
+  (monitor) lock of the value referenced by \<o>.
+
   \<@GuardedBy(\{\})>, which means the value is always allowed to be
   dereferenced, is the default type qualifier for all locations
   if the programmer does not
@@ -484,12 +491,12 @@ type-checking rules.
 
 \begin{Verbatim}
 class MyClass {
-  Object lock; // Initialized in the constructor
+  ReentrantLock lock; // Initialized in the constructor
 
   @GuardedBy("lock") Object x = new Object();
   @GuardedBy("lock") Object y = x; // OK, since dereferences of y will require "lock" to be held.
   @GuardedBy({}) Object z = x; // ILLEGAL since dereferences of z don't require "lock" to be held.
-  @GuardedBy("lock") Object myMethod() {
+  @GuardedBy("lock") Object myMethod() { // myMethod is implicitly annotated with @ReleasesNoLocks.
      return x; // OK because the return type is annotated with @GuardedBy("lock")
   }
 
@@ -499,11 +506,11 @@ class MyClass {
      x.toString(); // ILLEGAL because the lock is not known to be held
      y.toString(); // ILLEGAL because the lock is not known to be held
      myMethod().toString(); // ILLEGAL because the lock is not known to be held
-     synchronized(lock) {
-       x.toString();  // OK: the lock is known to be held
-       y.toString();  // OK: the lock is known to be held
-       myMethod().toString(); // OK: the lock is known to be held
-     }
+     lock.lock();
+     x.toString();  // OK: the lock is known to be held
+     y.toString();  // OK: the lock is known to be held, and toString() is annotated with @SideEffectFree.
+     myMethod().toString(); // OK: the lock is known to be held, since myMethod
+                            // is implicitly annotated with @ReleasesNoLocks.
   }
 }
 \end{Verbatim}
@@ -513,6 +520,37 @@ because it is immediately assigned to a newly-declared
 variable having type annotation \code{@GuardedBy("lock")}.  You could
 explicitly write \code{new @GuardedBy("lock") Object()} but it is not
 required.
+
+The following example demonstrates that using \<itself> as a lock expression
+allows a guarded value to be dereferenced even when the original
+variable name the value was originally assigned to falls out of scope.
+
+\begin{Verbatim}
+class MyClass {
+  private @GuardedBy("itself") Object x = new Object();
+  void method(){
+    x.toString(); // ILLEGAL because x is not known to be held.
+    synchronized(x) {
+      x.toString(); // OK: x is known to be held.
+    }
+  }
+
+  public @GuardedBy("itself") Object get_x() {
+    return x; // OK, since the return type is @GuardedBy("itself").
+  }
+}
+
+class MyOtherClass {
+  void method() {
+    MyClass m = new MyClass();
+    @GuardedBy("itself") Object o = m.get_x();
+    o.toString(); // ILLEGAL because o is not known to be held.
+    synchronized(o) {
+      o.toString(); // OK: o is known to be held.
+    }
+  }
+}
+\end{Verbatim}
 
 
 \subsection{@GuardedBy(\{``a'', ``b''\}) is not a subtype of @GuardedBy(\{``a''\})\label{lock-guardedby-invariant-subtyping}}
@@ -671,9 +709,9 @@ void clientMethod() {
     x.toString(); // OK: the lock is held
     myLockingUnlockingMethod();
     x.toString(); // OK: the lock is held
-    if (lock.isHeldByCurrentThread()) {
-      x.toString(); // OK: the lock is known to be held
-    }
+  }
+  if (lock.isHeldByCurrentThread()) {
+    x.toString(); // OK: the lock is known to be held
   }
 }
 \end{verbatim}
