@@ -28,3 +28,4 @@ ant javadoc-private
 # # It's cheaper to run the demos test here than to trigger the
 # # checker-framework-demos job, which has to build the whole Checker Framework.
 # (cd checker && ant check-demos)
+
