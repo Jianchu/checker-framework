@@ -1471,6 +1471,24 @@ public abstract class SourceChecker
         }
     }
 
+    public void report(final Result r) {
+
+        if (r.isSuccess()) {
+            return;
+        }
+
+        for (Result.DiagMessage msg : r.getDiagMessages()) {
+            if (r.isFailure()) {
+                this.message(hasOption("warns") ? Diagnostic.Kind.MANDATORY_WARNING
+                        : Diagnostic.Kind.ERROR, msg.getMessageKey(), msg.getArgs());
+            } else if (r.isWarning()) {
+                this.message(Diagnostic.Kind.MANDATORY_WARNING, msg.getMessageKey(), msg.getArgs());
+            } else {
+                this.message(Diagnostic.Kind.NOTE, msg.getMessageKey(), msg.getArgs());
+            }
+        }
+    }
+
     /**
      * Determines the value of the lint option with the given name.  Just
      * as <a
