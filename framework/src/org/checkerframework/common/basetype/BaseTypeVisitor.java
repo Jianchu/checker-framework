@@ -203,7 +203,7 @@ public class BaseTypeVisitor<Factory extends GenericAnnotatedTypeFactory<?, ?, ?
         this.atypeFactory = createTypeFactory();
         this.contractsUtils = ContractsUtils.getInstance(atypeFactory);
         this.positions = trees.getSourcePositions();
-        this.visitorState = atypeFactory.getVisitorState();
+        this.visitorState = new VisitorState();
         this.typeValidator = createTypeValidator();
         this.vectorType = atypeFactory.fromElement(elements.getTypeElement("java.util.Vector"));
     }
@@ -215,7 +215,7 @@ public class BaseTypeVisitor<Factory extends GenericAnnotatedTypeFactory<?, ?, ?
         this.atypeFactory = typeFactory;
         this.contractsUtils = ContractsUtils.getInstance(atypeFactory);
         this.positions = trees.getSourcePositions();
-        this.visitorState = atypeFactory.getVisitorState();
+        this.visitorState = new VisitorState();
         this.typeValidator = createTypeValidator();
         this.vectorType = atypeFactory.fromElement(elements.getTypeElement("java.util.Vector"));
     }
@@ -3278,5 +3278,9 @@ public class BaseTypeVisitor<Factory extends GenericAnnotatedTypeFactory<?, ?, ?
                 }
             }
         }
+    }
+
+    public VisitorState getVisitorState() {
+        return this.visitorState;
     }
 }

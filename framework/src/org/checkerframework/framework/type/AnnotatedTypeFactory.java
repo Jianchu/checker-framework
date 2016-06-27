@@ -333,7 +333,7 @@ public class AnnotatedTypeFactory implements AnnotationProvider {
         this.trees = Trees.instance(processingEnv);
         this.elements = processingEnv.getElementUtils();
         this.types = processingEnv.getTypeUtils();
-        this.visitorState = new VisitorState();
+        this.visitorState = checker.getVisitor().getVisitorState();
 
         this.loader = new AnnotationClassLoader(checker);
         this.supportedQuals = createSupportedTypeQualifiers();
